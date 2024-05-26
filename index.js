@@ -113,6 +113,48 @@ app.get('/api/file',async(req,res)=>{
     }
 })
 
+
+// Endpoint to add a new directory
+app.post('/api/directory', (req, res) => {
+    const { path, name } = req.body;
+    try {
+      const pathArray = path.split('/').filter(Boolean);
+      const parentDir = findItem(root, pathArray);
+      //console.log("request made")
+      if (!(parentDir instanceof Directory)) {
+        throw new Error('Parent is not a directory');
+      }
+      const newDir = new Directory(name);
+      parentDir.addDirectory(newDir);
+      console.log("yay");
+      return res.status(201).send('Directory created');
+    } catch (error) {
+      return res.status(400).send(error.message);
+    }
+  });
+  
+  // Endpoint to delete a directory
+  app.delete('/api/directory', (req, res) => {
+    const { path, name } = req.body;
+  
+    try {
+      const pathArray = path.split('/').filter(Boolean);
+      const parentDir = findItem(root, pathArray);
+      if (!(parentDir instanceof Directory)) {
+        throw new Error('Parent is not a directory');
+      }
+      const dirIndex = parentDir.contents.findIndex(item => item instanceof Directory && item.name === name);
+      if (dirIndex === -1) {
+        throw new Error('Directory not found');
+      }
+      parentDir.contents.splice(dirIndex, 1);
+      res.send('Directory deleted');
+    } catch (error) {
+      res.status(400).send(error.message);
+    }
+  });
+  
+
 app.use('*',  (req, res) => {
     res.sendFile((__dirname+ '/dist/index.html'));
 });
